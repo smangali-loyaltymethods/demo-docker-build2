@@ -38,9 +38,19 @@ pipeline {
             }
         }
 
-        stage('Clean up local images') {
+        stage('Run Container') {
             steps {
-                sh "docker rmi ${IMAGE_NAME}:${TAG} || true"
+                script {
+                    // Stop & remove existing container if running
+                    sh '''
+                    if [ "$(docker ps -q -f name=${IMAGE_NAME})" ]; then
+                        docker stop ${IMAGE_NAME} && docker rm ${IMAGE_NAME}
+                    fi
+
+                    // Run new container on port 8080
+                    docker run -d --name ${IMAGE_NAME} -p 8080:80 ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest
+                    '''
+                }
             }
         }
     }
