@@ -49,7 +49,7 @@ pipeline {
                         fi
 
                         # Run new container on port 8080
-                        docker run -d --name ${IMAGE_NAME} -p 8080:80 ${DOCKER_HUB_USER}/${IMAGE_NAME}:${TAG}
+                        docker run -d --name ${IMAGE_NAME} -p 8080:4040 ${DOCKER_HUB_USER}/${IMAGE_NAME}:${TAG}
                     '''
                 }
             }
