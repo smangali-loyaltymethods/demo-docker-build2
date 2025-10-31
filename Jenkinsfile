@@ -3,8 +3,7 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = 'dockerhub'
-        DOCKER_HUB_USER = 'srikanth4402'
-        IMAGE_NAME = 'moneesh_uncle'
+        IMAGE_NAME = 'srikanth4402/moneesh_uncle'
         TAG = 'latest'
     }
 
@@ -18,14 +17,20 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${DOCKER_HUB_USER}/${IMAGE_NAME}:${TAG}", ".")
+                    docker.build("${IMAGE_NAME}:${TAG}", ".")
                 }
             }
         }
 
         stage('Login to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: "${DOCKERHUB_CREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: "${DOCKERHUB_CREDENTIALS}",
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
                     sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
                 }
             }
@@ -34,7 +39,7 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    docker.image("${DOCKER_HUB_USER}/${IMAGE_NAME}:${TAG}").push()
+                    docker.image("${IMAGE_NAME}:${TAG}").push()
                 }
             }
         }
@@ -43,14 +48,14 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        # Stop and remove old container if running
-                        if [ "$(docker ps -aq -f name=${IMAGE_NAME})" ]; then
-                            docker stop ${IMAGE_NAME} || true 
-                             docker rm ${IMAGE_NAME}  || true
+                        # Stop and remove old container if it exists
+                        if [ "$(docker ps -aq -f name=moneesh_uncle)" ]; then
+                            docker stop moneesh_uncle || true
+                            docker rm moneesh_uncle || true
                         fi
 
-                        # Run new container on port 8080
-                        docker run -d --name ${IMAGE_NAME} -p 8080:4040 ${DOCKER_HUB_USER}/${IMAGE_NAME}:${TAG}
+                        # Run a new container on port 9090:4040
+                        docker run -d --restart=always --name moneesh_uncle -p 9090:4040 ${IMAGE_NAME}:${TAG}
                     '''
                 }
             }
@@ -58,7 +63,12 @@ pipeline {
 
         stage('Verify Container') {
             steps {
-                sh 'docker ps'
+                script {
+                    sh '''
+                        echo "Running containers:"
+                        docker ps
+                    '''
+                }
             }
         }
     }
