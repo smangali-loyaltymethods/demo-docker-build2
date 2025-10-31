@@ -55,7 +55,7 @@ pipeline {
                         fi
 
                         # Run a new container on port 9090:4040
-                        docker run -d --restart=always --name moneesh_uncle -p 9090:4040 ${IMAGE_NAME}:${TAG}
+                        docker run -d --restart=always --name moneesh_uncle -p 9090:80 ${IMAGE_NAME}:${TAG}
                     '''
                 }
             }
