@@ -44,8 +44,9 @@ pipeline {
                 script {
                     sh '''
                         # Stop and remove old container if running
-                        if [ "$(docker ps -q -f name=${IMAGE_NAME})" ]; then
-                            docker stop ${IMAGE_NAME} && docker rm ${IMAGE_NAME}
+                        if [ "$(docker ps -aq -f name=${IMAGE_NAME})" ]; then
+                            docker stop ${IMAGE_NAME} || true 
+                             docker rm ${IMAGE_NAME}  || true
                         fi
 
                         # Run new container on port 8080
