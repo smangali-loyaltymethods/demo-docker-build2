@@ -3,7 +3,8 @@ pipeline {
 
     environment {
         DOCKERHUB_CREDENTIALS = 'dockerhub'
-        IMAGE_NAME = 'srikanth4402/moneesh_uncle'
+        DOCKER_HUB_USER = 'srikanth4402'
+        IMAGE_NAME = 'moneesh_uncle'
         TAG = 'latest'
     }
 
@@ -17,7 +18,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
-                    docker.build("${IMAGE_NAME}:${TAG}", ".")
+                    docker.build("${DOCKER_HUB_USER}/${IMAGE_NAME}:${TAG}", ".")
                 }
             }
         }
@@ -33,7 +34,7 @@ pipeline {
         stage('Push to Docker Hub') {
             steps {
                 script {
-                    docker.image("${IMAGE_NAME}:${TAG}").push()
+                    docker.image("${DOCKER_HUB_USER}/${IMAGE_NAME}:${TAG}").push()
                 }
             }
         }
@@ -41,16 +42,22 @@ pipeline {
         stage('Run Container') {
             steps {
                 script {
-                    // Stop & remove existing container if running
                     sh '''
-                    if [ "$(docker ps -q -f name=${IMAGE_NAME})" ]; then
-                        docker stop ${IMAGE_NAME} && docker rm ${IMAGE_NAME}
-                    fi
+                        # Stop and remove old container if running
+                        if [ "$(docker ps -q -f name=${IMAGE_NAME})" ]; then
+                            docker stop ${IMAGE_NAME} && docker rm ${IMAGE_NAME}
+                        fi
 
-                    // Run new container on port 8080
-                    docker run -d --name ${IMAGE_NAME} -p 8080:80 ${DOCKER_HUB_USER}/${IMAGE_NAME}:latest
+                        # Run new container on port 8080
+                        docker run -d --name ${IMAGE_NAME} -p 8080:80 ${DOCKER_HUB_USER}/${IMAGE_NAME}:${TAG}
                     '''
                 }
+            }
+        }
+
+        stage('Verify Container') {
+            steps {
+                sh 'docker ps'
             }
         }
     }
